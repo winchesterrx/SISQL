@@ -581,28 +581,42 @@ const Dashboard = () => {
                                                         {msg.role === 'error' ? (
                                                             <p className="text-red-400 font-bold">{msg.content}</p>
                                                         ) : (
-                                                            <div className="text-[15px] leading-relaxed text-blue-50/80 w-full overflow-hidden markdown-text">
-                                                                {msg.content.includes('```sql') ? (
-                                                                    <>
-                                                                        {/* Texto antes do código */}
-                                                                        {msg.content.split('```sql')[0].trim().length > 0 && (
-                                                                            <ReactMarkdown className="prose prose-invert prose-sm max-w-none mb-4">{msg.content.split('```sql')[0].trim()}</ReactMarkdown>
-                                                                        )}
-
-                                                                        {/* Card SQL Premium */}
-                                                                        <SQLCodeBlock
-                                                                            code={msg.content.split('```sql')[1].split('```')[0].trim()}
-                                                                            version={selectedVersion}
-                                                                        />
-
-                                                                        {/* Texto depois do código (se houver) */}
-                                                                        {msg.content.split('```')[2] && msg.content.split('```')[2].trim().length > 0 && (
-                                                                            <ReactMarkdown className="prose prose-invert prose-sm max-w-none mt-4">{msg.content.split('```')[2].trim()}</ReactMarkdown>
-                                                                        )}
-                                                                    </>
-                                                                ) : (
-                                                                    <ReactMarkdown className="prose prose-invert prose-sm max-w-none">{msg.content}</ReactMarkdown>
-                                                                )}
+                                                            <div className="text-[15px] leading-relaxed w-full overflow-hidden markdown-text">
+                                                                <ReactMarkdown
+                                                                    className="prose prose-invert prose-sm max-w-none w-full"
+                                                                    components={{
+                                                                        code({node, inline, className, children, ...props}) {
+                                                                            const match = /language-(\w+)/.exec(className || '');
+                                                                            if (!inline && match && match[1] === 'sql') {
+                                                                                return (
+                                                                                    <div className="my-4">
+                                                                                        <SQLCodeBlock
+                                                                                            code={String(children).replace(/\n$/, '')}
+                                                                                            version={selectedVersion}
+                                                                                        />
+                                                                                    </div>
+                                                                                );
+                                                                            }
+                                                                            return !inline ? (
+                                                                                <SyntaxHighlighter
+                                                                                    style={dracula}
+                                                                                    language={match ? match[1] : 'text'}
+                                                                                    PreTag="div"
+                                                                                    className="rounded-lg my-4 !bg-black/30 !border !border-white/10"
+                                                                                    {...props}
+                                                                                >
+                                                                                    {String(children).replace(/\n$/, '')}
+                                                                                </SyntaxHighlighter>
+                                                                            ) : (
+                                                                                <code className="bg-white/10 px-1.5 py-0.5 rounded-md text-blue-300 font-mono text-[13px]" {...props}>
+                                                                                    {children}
+                                                                                </code>
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {msg.content || ''}
+                                                                </ReactMarkdown>
                                                             </div>
                                                         )}
                                                     </div>
