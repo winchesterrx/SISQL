@@ -212,6 +212,43 @@ const handleFDBUpload = async (req, res) => {
     }
 };
 
+const getPendingUsers = async (req, res) => {
+    try {
+        const [rows] = await pool.execute(
+            'SELECT id, nome, email, role, status FROM usuarios WHERE status = "pending" ORDER BY id DESC'
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('ERRO AO BUSCAR PENDENTES:', error);
+        res.status(500).json({ error: "Erro ao buscar usuários pendentes." });
+    }
+};
+
+const approveUser = async (req, res) => {
+    const { id } = req.params;
+    const { bancadaId, role } = req.body;
+    try {
+        await pool.execute(
+            'UPDATE usuarios SET status = "approved", bancada_id = ?, role = ? WHERE id = ?',
+            [bancadaId, role || 'user', id]
+        );
+        res.json({ message: "Usuário aprovado com sucesso." });
+    } catch (error) {
+        console.error('ERRO AO APROVAR USUÁRIO:', error);
+        res.status(500).json({ error: "Erro ao aprovar usuário." });
+    }
+};
+
+const rejectUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.execute('DELETE FROM usuarios WHERE id = ? AND status = "pending"', [id]);
+        res.json({ message: "Cadastro rejeitado e removido." });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao rejeitar usuário." });
+    }
+};
+
 module.exports = {
     uploadDDL,
     createUser,
@@ -225,5 +262,8 @@ module.exports = {
     checkAIStatus,
     deleteUser,
     updateUser,
-    handleFDBUpload
+    handleFDBUpload,
+    getPendingUsers,
+    approveUser,
+    rejectUser
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Users, ShieldCheck, Database, LayoutDashboard, Plus,
     Trash2, CheckCircle2, UploadCloud, Loader2, Sparkles, Cpu,
-    Code2, ArrowLeft, Check, Server, Key, Zap, Brain, Activity
+    Code2, ArrowLeft, Check, Server, Key, Zap, Brain, Activity, UserCheck, XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
@@ -18,6 +18,11 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showUserModal, setShowUserModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [pendingUsers, setPendingUsers] = useState([]);
+    const [showApproveModal, setShowApproveModal] = useState(false);
+    const [selectedPendingUser, setSelectedPendingUser] = useState(null);
+    const [approveBancadaId, setApproveBancadaId] = useState('');
+    const [approveRole, setApproveRole] = useState('user');
 
     // Form states
     const [newUser, setNewUser] = useState({ nome: '', email: '', senha: '', role: 'user', bancadaId: '' });
@@ -33,17 +38,19 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
         try {
-            const [uRes, sRes, stRes, bRes] = await Promise.all([
+            const [uRes, sRes, stRes, bRes, pRes] = await Promise.all([
                 api.get('admin/users'),
                 api.get('admin/sistemas'),
                 api.get('admin/status'),
-                api.get('admin/bancadas')
+                api.get('admin/bancadas'),
+                api.get('admin/pending-users').catch(() => ({ data: [] }))
             ]);
             setUsers(uRes.data || []);
             const newSistemas = sRes.data || [];
             setSistemas(newSistemas);
             setAiStatus(stRes.data || { openai: false, gemini: false });
             setBancadas(bRes.data || []);
+            setPendingUsers(pRes.data || []);
 
             // Sync selected sistema if any
             if (selectedSistema) {
@@ -174,6 +181,13 @@ const AdminDashboard = () => {
                         <Users className="w-5 h-5" />
                         <span className="font-bold text-sm">Usuários</span>
                     </button>
+                    <button onClick={() => setActiveTab('pending')} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${activeTab === 'pending' ? 'bg-amber-600 text-white shadow-lg' : 'hover:bg-white/5 text-slate-400'}`}>
+                        <div className="flex items-center gap-3">
+                            <UserCheck className="w-5 h-5" />
+                            <span className="font-bold text-sm">Aprovações</span>
+                        </div>
+                        {pendingUsers.length > 0 && <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{pendingUsers.length}</span>}
+                    </button>
                     <button onClick={() => setActiveTab('db')} className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all ${activeTab === 'db' ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-white/5 text-slate-400'}`}>
                         <Database className="w-5 h-5" />
                         <span className="font-bold text-sm">Setores & IA</span>
@@ -268,6 +282,58 @@ const AdminDashboard = () => {
                                                     className="p-2 hover:bg-red-500/10 text-red-400 rounded-lg transition-all"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'pending' && (
+                    <div className="space-y-8 animate-in fade-in duration-500">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-4xl font-black text-white">Aprovações Pendentes</h2>
+                        </div>
+                        <div className="glass rounded-[2rem] border-white/5 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-white/5">
+                                    <tr>
+                                        <th className="px-6 py-4 text-xs font-black uppercase text-slate-500">Nome</th>
+                                        <th className="px-6 py-4 text-xs font-black uppercase text-slate-500">E-mail</th>
+                                        <th className="px-6 py-4 text-xs font-black uppercase text-slate-500 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pendingUsers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-8 text-center text-slate-500 font-bold">Nenhum cadastro pendente no momento.</td>
+                                        </tr>
+                                    ) : pendingUsers.map(u => (
+                                        <tr key={u.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 font-bold">{u.nome}</td>
+                                            <td className="px-6 py-4 text-slate-400">{u.email}</td>
+                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => { setSelectedPendingUser(u); setApproveBancadaId(''); setApproveRole('user'); setShowApproveModal(true); }}
+                                                    className="p-2 hover:bg-emerald-500/10 text-emerald-400 rounded-lg transition-all"
+                                                    title="Aprovar"
+                                                >
+                                                    <CheckCircle2 className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm('Rejeitar e excluir cadastro?')) {
+                                                            await api.post(`/admin/reject-user/${u.id}`);
+                                                            fetchData();
+                                                        }
+                                                    }}
+                                                    className="p-2 hover:bg-red-500/10 text-red-400 rounded-lg transition-all"
+                                                    title="Rejeitar"
+                                                >
+                                                    <XCircle className="w-5 h-5" />
                                                 </button>
                                             </td>
                                         </tr>
@@ -616,6 +682,76 @@ const AdminDashboard = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+                 {/* Modal Aprovar Usuário */}
+                 <AnimatePresence>
+                 {showApproveModal && selectedPendingUser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="glass max-w-lg w-full p-8 rounded-[2.5rem] border-white/10 shadow-2xl space-y-6"
+                        >
+                            <h3 className="text-2xl font-black text-white">Aprovar Cadastro</h3>
+                            <p className="text-sm text-slate-400">Atribua uma bancada (setor) para o novo usuário <strong>{selectedPendingUser.nome}</strong>.</p>
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                try {
+                                    await api.post(`/admin/approve-user/${selectedPendingUser.id}`, { bancadaId: approveBancadaId, role: approveRole });
+                                    setShowApproveModal(false);
+                                    setSelectedPendingUser(null);
+                                    fetchData();
+                                } catch(err) {
+                                    alert("Erro ao aprovar.");
+                                }
+                            }} className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Bancada (Setor)</label>
+                                    <select
+                                        required value={approveBancadaId}
+                                        onChange={e => setApproveBancadaId(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-blue-500 transition-all appearance-none text-white cursor-pointer"
+                                    >
+                                        <option value="" className="bg-slate-900 text-slate-400">Selecione uma bancada...</option>
+                                        {bancadas.map(b => (
+                                            <option key={b.id} value={b.id} className="bg-slate-900 text-white">
+                                                {b.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Perfil (Nível de Acesso)</label>
+                                    <select
+                                        value={approveRole}
+                                        onChange={e => setApproveRole(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-blue-500 transition-all appearance-none text-white cursor-pointer"
+                                    >
+                                        <option value="user" className="bg-slate-900 text-white">Usuário Comum</option>
+                                        <option value="admin" className="bg-slate-900 text-white">Administrador (Acesso Total)</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowApproveModal(false)}
+                                        className="flex-1 p-4 rounded-2xl font-bold bg-white/5 hover:bg-white/10 transition-all text-white"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 p-4 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 transition-all text-white flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle2 className="w-5 h-5" /> Aprovar e Liberar
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+                </AnimatePresence>
         </div>
     );
 };

@@ -12,6 +12,10 @@ const login = async (req, res) => {
             return res.status(401).json({ error: "Credenciais inválidas." });
         }
 
+        if (user.status !== 'approved') {
+            return res.status(403).json({ error: "Sua conta aguarda aprovação do administrador." });
+        }
+
         const token = jwt.sign(
             { id: user.id, nome: user.nome, role: user.role, bancada_id: user.bancada_id },
             process.env.JWT_SECRET,
@@ -21,6 +25,21 @@ const login = async (req, res) => {
         res.json({ token, user: { id: user.id, nome: user.nome, role: user.role, bancada_id: user.bancada_id } });
     } catch (error) {
         res.status(500).json({ error: "Erro no login." });
+    }
+};
+
+const register = async (req, res) => {
+    const { nome, email, senha } = req.body;
+    try {
+        const hashedSenha = await bcrypt.hash(senha, 10);
+        await pool.execute(
+            'INSERT INTO usuarios (nome, email, senha, role, status) VALUES (?, ?, ?, "user", "pending")',
+            [nome, email, hashedSenha]
+        );
+        res.json({ message: "Cadastro enviado com sucesso. Aguarde aprovação." });
+    } catch (error) {
+        console.error('ERRO AO REGISTRAR USUÁRIO:', error);
+        res.status(500).json({ error: "Erro ao registrar usuário. O e-mail já pode estar em uso." });
     }
 };
 
@@ -51,4 +70,4 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { login, registerAdmin, getProfile };
+module.exports = { login, register, registerAdmin, getProfile };

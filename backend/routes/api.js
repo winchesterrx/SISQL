@@ -10,6 +10,7 @@ const { authMiddleware, adminMiddleware } = require('../middlewares/auth');
 
 // Rotas Públicas
 router.post('/login', authController.login);
+router.post('/register', authController.register);
 router.post('/setup-admin', authController.registerAdmin);
 
 // Rotas Protegidas (Usuário Comum e Admin)
@@ -40,6 +41,9 @@ router.get('/admin/users', authMiddleware, adminMiddleware, adminController.getU
 router.post('/admin/users', authMiddleware, adminMiddleware, adminController.createUser);
 router.put('/admin/users/:id', authMiddleware, adminMiddleware, adminController.updateUser);
 router.delete('/admin/users/:id', authMiddleware, adminMiddleware, adminController.deleteUser);
+router.get('/admin/pending-users', authMiddleware, adminMiddleware, adminController.getPendingUsers);
+router.post('/admin/approve-user/:id', authMiddleware, adminMiddleware, adminController.approveUser);
+router.post('/admin/reject-user/:id', authMiddleware, adminMiddleware, adminController.rejectUser);
 router.get('/admin/bancadas', authMiddleware, adminMiddleware, adminController.getBancadas);
 router.get('/admin/sistemas', authMiddleware, adminMiddleware, adminController.getSistemas);
 router.get('/admin/status', authMiddleware, adminMiddleware, adminController.checkAIStatus);
