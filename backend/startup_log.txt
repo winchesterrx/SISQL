@@ -1,0 +1,87 @@
+﻿Ô£à .ENV CARREGADO COM SUCESSO: 8 vari├íveis injetadas.
+--- INICIALIZANDO SERVIDOR ---
+Diret├│rio Atual: C:\xampp\htdocs\SISSQL\backend
+OpenAI Key Presente: true
+Gemini Key Presente: true
+JWT_SECRET Length: 22
+node : node:internal/module
+s/cjs/loader:1228
+No linha:1 caractere:13
++ cd backend; node 
+server.js 2>&1 | Out-File 
+-FilePath startup_log.txt  
+...
++             
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (nod  
+  e:internal/modules/cjs   
+ /loader:1228:String) [    
+], RemoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+  throw err;
+  ^
+
+Error: Cannot find module 
+'openai'
+Require stack:
+- C:\xampp\htdocs\SISSQL\ba
+ckend\services\aiService.js
+- C:\xampp\htdocs\SISSQL\ba
+ckend\controllers\aiControl
+ler.js
+- C:\xampp\htdocs\SISSQL\ba
+ckend\routes\api.js
+- C:\xampp\htdocs\SISSQL\ba
+ckend\server.js
+    at 
+Function._resolveFilename (
+node:internal/modules/cjs/l
+oader:1225:15)
+    at Function._load (node
+:internal/modules/cjs/loade
+r:1055:27)
+    at 
+TracingChannel.traceSync (n
+ode:diagnostics_channel:322
+:14)
+    at wrapModuleLoad (node
+:internal/modules/cjs/loade
+r:220:24)
+    at Module.require (node
+:internal/modules/cjs/loade
+r:1311:12)
+    at require (node:intern
+al/modules/helpers:136:16)
+    at Object.<anonymous> (
+C:\xampp\htdocs\SISSQL\back
+end\services\aiService.js:2
+:20)
+    at Module._compile (nod
+e:internal/modules/cjs/load
+er:1554:14)
+    at Object..js (node:int
+ernal/modules/cjs/loader:17
+06:10)
+    at Module.load (node:in
+ternal/modules/cjs/loader:1
+289:32) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\xampp\\htdocs\\SIS
+SQL\\backend\\services\\aiS
+ervice.js',
+    'C:\\xampp\\htdocs\\SIS
+SQL\\backend\\controllers\\
+aiController.js',
+    'C:\\xampp\\htdocs\\SIS
+SQL\\backend\\routes\\api.j
+s',
+    'C:\\xampp\\htdocs\\SIS
+SQL\\backend\\server.js'
+  ]
+}
+
+Node.js v22.14.0
