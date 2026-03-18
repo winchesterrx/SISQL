@@ -26,11 +26,11 @@ const createSession = async (req, res) => {
 const getSessions = async (req, res) => {
     try {
         const { sistemaId } = req.params;
-        const bancadaId = req.user.bancada_id;
+        const usuarioId = req.user.id;
 
         const [sessions] = await pool.execute(
-            'SELECT * FROM chat_sessions WHERE bancada_id = ? AND sistema_id = ? ORDER BY created_at DESC',
-            [bancadaId, sistemaId]
+            'SELECT * FROM chat_sessions WHERE usuario_id = ? AND sistema_id = ? ORDER BY created_at DESC',
+            [usuarioId, sistemaId]
         );
 
         res.json(sessions);
@@ -43,14 +43,14 @@ const getSessions = async (req, res) => {
 const getMessages = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        const bancadaId = req.user.bancada_id;
+        const usuarioId = req.user.id;
         const role = req.user.role;
 
-        // Verificar se a sessão pertence à bancada do usuário (ou se é admin)
+        // Verificar se a sessão pertence ao usuário (ou se é admin)
         const query = role === 'admin'
             ? 'SELECT id FROM chat_sessions WHERE id = ?'
-            : 'SELECT id FROM chat_sessions WHERE id = ? AND bancada_id = ?';
-        const params = role === 'admin' ? [sessionId] : [sessionId, bancadaId];
+            : 'SELECT id FROM chat_sessions WHERE id = ? AND usuario_id = ?';
+        const params = role === 'admin' ? [sessionId] : [sessionId, usuarioId];
 
         const [session] = await pool.execute(query, params);
 
@@ -73,13 +73,13 @@ const getMessages = async (req, res) => {
 const deleteSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        const bancadaId = req.user.bancada_id;
+        const usuarioId = req.user.id;
         const role = req.user.role;
 
         const query = role === 'admin'
             ? 'DELETE FROM chat_sessions WHERE id = ?'
-            : 'DELETE FROM chat_sessions WHERE id = ? AND bancada_id = ?';
-        const params = role === 'admin' ? [sessionId] : [sessionId, bancadaId];
+            : 'DELETE FROM chat_sessions WHERE id = ? AND usuario_id = ?';
+        const params = role === 'admin' ? [sessionId] : [sessionId, usuarioId];
 
         const [result] = await pool.execute(query, params);
 
@@ -98,13 +98,13 @@ const renameSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
         const { titulo } = req.body;
-        const bancadaId = req.user.bancada_id;
+        const usuarioId = req.user.id;
         const role = req.user.role;
 
         const query = role === 'admin'
             ? 'UPDATE chat_sessions SET titulo = ? WHERE id = ?'
-            : 'UPDATE chat_sessions SET titulo = ? WHERE id = ? AND bancada_id = ?';
-        const params = role === 'admin' ? [titulo, sessionId] : [titulo, sessionId, bancadaId];
+            : 'UPDATE chat_sessions SET titulo = ? WHERE id = ? AND usuario_id = ?';
+        const params = role === 'admin' ? [titulo, sessionId] : [titulo, sessionId, usuarioId];
 
         const [result] = await pool.execute(query, params);
 
