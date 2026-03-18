@@ -12,11 +12,13 @@
   "dependencies": {
     "@react-three/drei": "^9.88.0",
     "@react-three/fiber": "^8.15.0",
+    "@tailwindcss/typography": "^0.5.19",
     "axios": "^1.6.7",
     "framer-motion": "^11.0.3",
     "lucide-react": "^0.331.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.22.1",
     "react-syntax-highlighter": "^15.5.0",
     "three": "^0.160.0"
